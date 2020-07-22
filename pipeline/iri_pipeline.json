@@ -75,7 +75,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "dataflow1",
+						"referenceName": "loadToSynapse",
 						"type": "DataFlowReference"
 					},
 					"compute": {
