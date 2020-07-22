@@ -1,0 +1,17 @@
+{
+	"name": "SynapseOperationalTable_sink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseOperational",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "definitive_HC",
+			"table": "operationaldhc"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

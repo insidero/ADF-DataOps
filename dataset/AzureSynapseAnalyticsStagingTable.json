@@ -1,0 +1,17 @@
+{
+	"name": "AzureSynapseAnalyticsStagingTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSynapseAnalyticsStaging",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "definitive_HC",
+			"table": "stagingdhc"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
