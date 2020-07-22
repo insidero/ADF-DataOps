@@ -345,7 +345,32 @@
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
-				"schema": []
+				"schema": [
+					{
+						"name": "Date",
+						"type": "String"
+					},
+					{
+						"name": "County",
+						"type": "String"
+					},
+					{
+						"name": "Product Category",
+						"type": "String"
+					},
+					{
+						"name": "Product Brand",
+						"type": "String"
+					},
+					{
+						"name": "In Stock Rate",
+						"type": "String"
+					},
+					{
+						"name": "Agg Weight",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
