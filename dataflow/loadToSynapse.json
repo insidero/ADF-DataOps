@@ -21,8 +21,12 @@
 					"name": "Sink"
 				}
 			],
-			"transformations": [],
-			"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['by_country/*']) ~> Source\nSource sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Sink"
+			"transformations": [
+				{
+					"name": "ReplaceSpaceWithUnderScore"
+				}
+			],
+			"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['by_country/*']) ~> Source\nSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Sink"
 		}
 	}
 }
