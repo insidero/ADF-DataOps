@@ -2,7 +2,7 @@
 	"name": "iri_synapse_dataset",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "AzureSynapseAnalyticsStaging",
+			"referenceName": "iriSynapse",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
