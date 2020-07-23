@@ -416,6 +416,27 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/foils_wraps_synapse_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "foilsWraps"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -497,40 +518,6 @@
 				"[concat(variables('factoryId'), '/datasets/SqlDbStaging')]",
 				"[concat(variables('factoryId'), '/datasets/SynapseOperationalTable_sink')]",
 				"[concat(variables('factoryId'), '/datasets/SqlOperationalSink')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LoadIntoStagingTable')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ArmtemplateTestDatasetOut",
-								"type": "DatasetReference"
-							},
-							"name": "SourceCSV"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference"
-							},
-							"name": "SynapseStagingSink"
-						}
-					],
-					"transformations": [],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'filename',\n\tinferDriftedColumnTypes: true) ~> SourceCSV\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseStagingSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ArmtemplateTestDatasetOut')]",
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]"
 			]
 		}
 	]
