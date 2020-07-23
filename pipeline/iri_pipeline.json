@@ -137,9 +137,16 @@
 				}
 			},
 			{
-				"name": "iri_dataflow_cups_plates_copy1",
+				"name": "iri_dataflow_food_trash_bags",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "iri_to_local",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
