@@ -1095,12 +1095,12 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "loadCupsPlatesToSynapse",
+								"referenceName": "loadFoodTrashBagsToSynapse",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"CupsPlatesSource": {},
-									"CupsPlatesSink": {}
+									"FoodTrashBagsSource": {},
+									"FoodTrashBagsSink": {}
 								}
 							},
 							"staging": {
@@ -1124,7 +1124,8 @@
 				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
 				"[concat(variables('factoryId'), '/dataflows/loadCupsPlatesToSynapse')]",
 				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]",
-				"[concat(variables('factoryId'), '/dataflows/loadFoilsWrapsToSynapse')]"
+				"[concat(variables('factoryId'), '/dataflows/loadFoilsWrapsToSynapse')]",
+				"[concat(variables('factoryId'), '/dataflows/loadFoodTrashBagsToSynapse')]"
 			]
 		},
 		{
@@ -1331,10 +1332,10 @@
 					],
 					"transformations": [
 						{
-							"name": "ReplaceSpaceWithUnderScores"
+							"name": "ReplaceSpaceWithUnderScore"
 						}
 					],
-					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['foils_wraps*.csv']) ~> FoilsWrapsSource\nFoilsWrapsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScores\nReplaceSpaceWithUnderScores sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoilsWrapsSink"
+					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['foils_wraps*.csv']) ~> FoilsWrapsSource\nFoilsWrapsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoilsWrapsSink"
 				}
 			},
 			"dependsOn": [
@@ -1382,6 +1383,44 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/loadFoodTrashBagsToSynapse')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "iri_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "FoodTrashBagsSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "food_trash_bags_synapse_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "FoodTrashBagsSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
+						}
+					],
+					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['food_trash_bags*.csv']) ~> FoodTrashBagsSource\nFoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoodTrashBagsSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/food_trash_bags_synapse_dataset')]"
 			]
 		}
 	]
