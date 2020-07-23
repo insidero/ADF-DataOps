@@ -286,6 +286,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
+						"folderPath": "by_country",
 						"container": "irimscovoos"
 					},
 					"columnDelimiter": ",",
