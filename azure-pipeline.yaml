@@ -2,17 +2,17 @@
 trigger:
   branches:
     include:
-      - master
+      - adf_publish
   paths:
     include:
-      - environment_setup/arm-templates/*
+      - schemaCustomerADF/*
 pr:
   branches:
     include:
       - master
   paths:
     include:
-      - environment_setup/arm-templates/*
+      - schemaCustomerADF/*
 
 pool:
   vmImage: "ubuntu-latest"
@@ -30,7 +30,7 @@ steps:
       resourceGroupName: "$(RESOURCE_GROUP)"
       location: $(LOCATION)
       templateLocation: "Linked artifact"
-      csmFile: "$(Build.SourcesDirectory)/environment_setup/arm-templates/adf.json"
+      csmFile: "$(Build.SourcesDirectory)/schemaCustomerADF/ARMTemplateForFactory.json"
       overrideParameters: "-baseName $(BASE_NAME) -location $(LOCATION) -environment $(ENVIRONMENT)"
       deploymentMode: "Incremental"
     displayName: "Deploy DataOps resources to Azure"
