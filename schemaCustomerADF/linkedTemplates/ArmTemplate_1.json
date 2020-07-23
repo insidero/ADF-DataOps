@@ -13,6 +13,44 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/LoadIntoStagingTable_withSQL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ArmtemplateTestDatasetOut",
+								"type": "DatasetReference"
+							},
+							"name": "SourceCSV"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsStagingTable",
+								"type": "DatasetReference"
+							},
+							"name": "SynapseStagingSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "SqlDbStaging",
+								"type": "DatasetReference"
+							},
+							"name": "SQLStagingSink"
+						}
+					],
+					"transformations": [],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'filename',\n\tinferDriftedColumnTypes: true) ~> SourceCSV\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseStagingSink\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SQLStagingSink"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/loadToSynapse')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -516,7 +554,9 @@
 				],
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/LoadIntoStagingTable_withSQL')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/iri_pipeline')]",

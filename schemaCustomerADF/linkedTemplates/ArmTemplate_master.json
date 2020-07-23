@@ -35,6 +35,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'iri_source_blobstorage_linkedservice'"
 		},
+		"iriSynapse_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'iriSynapse'"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -82,6 +86,9 @@
 					},
 					"iri_source_blobstorage_linkedservice_connectionString": {
 						"value": "[parameters('iri_source_blobstorage_linkedservice_connectionString')]"
+					},
+					"iriSynapse_connectionString": {
+						"value": "[parameters('iriSynapse_connectionString')]"
 					}
 				}
 			},

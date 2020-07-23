@@ -34,6 +34,10 @@
 		"iri_source_blobstorage_linkedservice_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'iri_source_blobstorage_linkedservice'"
+		},
+		"iriSynapse_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'iriSynapse'"
 		}
 	},
 	"variables": {
@@ -1187,7 +1191,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureSynapseAnalyticsStaging",
+					"referenceName": "iriSynapse",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
@@ -1199,8 +1203,21 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsStaging')]"
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iriSynapse')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('iriSynapse_connectionString')]"
+				}
+			},
+			"dependsOn": []
 		}
 	]
 }

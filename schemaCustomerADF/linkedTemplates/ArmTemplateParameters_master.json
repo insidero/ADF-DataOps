@@ -26,6 +26,9 @@
 		"iri_source_blobstorage_linkedservice_connectionString": {
 			"value": ""
 		},
+		"iriSynapse_connectionString": {
+			"value": ""
+		},
 		"containerUri": {
 			"value": ""
 		},

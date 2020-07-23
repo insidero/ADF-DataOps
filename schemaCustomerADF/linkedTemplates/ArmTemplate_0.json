@@ -34,6 +34,10 @@
 		"iri_source_blobstorage_linkedservice_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'iri_source_blobstorage_linkedservice'"
+		},
+		"iriSynapse_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'iriSynapse'"
 		}
 	},
 	"variables": {
@@ -127,6 +131,19 @@
 				"type": "AzureBlobStorage",
 				"typeProperties": {
 					"connectionString": "[parameters('iri_source_blobstorage_linkedservice_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iriSynapse')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('iriSynapse_connectionString')]"
 				}
 			},
 			"dependsOn": []
@@ -383,7 +400,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureSynapseAnalyticsStaging",
+					"referenceName": "iriSynapse",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
@@ -395,7 +412,7 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsStaging')]"
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
 			]
 		},
 		{
@@ -514,48 +531,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ArmtemplateTestDatasetOut')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LoadIntoStagingTable_withSQL')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ArmtemplateTestDatasetOut",
-								"type": "DatasetReference"
-							},
-							"name": "SourceCSV"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference"
-							},
-							"name": "SynapseStagingSink"
-						},
-						{
-							"dataset": {
-								"referenceName": "SqlDbStaging",
-								"type": "DatasetReference"
-							},
-							"name": "SQLStagingSink"
-						}
-					],
-					"transformations": [],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'filename',\n\tinferDriftedColumnTypes: true) ~> SourceCSV\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseStagingSink\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SQLStagingSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ArmtemplateTestDatasetOut')]",
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
-				"[concat(variables('factoryId'), '/datasets/SqlDbStaging')]"
 			]
 		}
 	]
