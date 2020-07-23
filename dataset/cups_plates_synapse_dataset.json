@@ -1,5 +1,5 @@
 {
-	"name": "iri_cups_plates_synapse_dataset",
+	"name": "cups_plates_synapse_dataset",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "iriSynapse",
@@ -10,7 +10,7 @@
 		"schema": [],
 		"typeProperties": {
 			"schema": "",
-			"table": "CupsPlates"
+			"table": "cupsPlates"
 		}
 	}
 }
