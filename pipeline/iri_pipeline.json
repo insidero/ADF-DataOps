@@ -116,6 +116,12 @@
 						"referenceName": "loadFoilsWrapsToSynapse",
 						"type": "DataFlowReference"
 					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "LocalStorageLinkedService",
+							"type": "LinkedServiceReference"
+						}
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
