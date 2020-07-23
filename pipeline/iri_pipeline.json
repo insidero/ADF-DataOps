@@ -137,16 +137,9 @@
 				}
 			},
 			{
-				"name": "iri_dataflow_food_trash_bags",
+				"name": "dataflow1",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "iri_to_local",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -157,15 +150,8 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "loadCupsPlatesToSynapse",
+						"referenceName": "loadFoodTrashBagsToSynapse",
 						"type": "DataFlowReference"
-					},
-					"staging": {
-						"linkedService": {
-							"referenceName": "LocalStorageLinkedService",
-							"type": "LinkedServiceReference"
-						},
-						"folderPath": "iri-container"
 					},
 					"compute": {
 						"coreCount": 8,
