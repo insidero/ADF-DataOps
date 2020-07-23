@@ -1,0 +1,16 @@
+{
+	"name": "food_trash_bags_synapse_dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "iriSynapse",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "",
+			"table": "foodTrashBags"
+		}
+	}
+}
