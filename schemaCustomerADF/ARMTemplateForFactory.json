@@ -1011,7 +1011,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "loadToSynapse",
+								"referenceName": "loadCupsPlatesToSynapse",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
@@ -1038,7 +1038,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/iri_source_dataset')]",
 				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
-				"[concat(variables('factoryId'), '/dataflows/loadToSynapse')]",
+				"[concat(variables('factoryId'), '/dataflows/loadCupsPlatesToSynapse')]",
 				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
 			]
 		},
@@ -1148,7 +1148,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/loadToSynapse')]",
+			"name": "[concat(parameters('factoryName'), '/loadCupsPlatesToSynapse')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {

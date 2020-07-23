@@ -51,7 +51,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/loadToSynapse')]",
+			"name": "[concat(parameters('factoryName'), '/loadCupsPlatesToSynapse')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -647,7 +647,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "loadToSynapse",
+								"referenceName": "loadCupsPlatesToSynapse",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
@@ -672,7 +672,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/loadToSynapse')]"
+				"[concat(variables('factoryId'), '/dataflows/loadCupsPlatesToSynapse')]"
 			]
 		}
 	]
