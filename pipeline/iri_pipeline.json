@@ -83,7 +83,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "loadFoodTrashBagsToSynapse",
+						"referenceName": "loadCupsPlatesToSynapse",
 						"type": "DataFlowReference"
 					},
 					"staging": {
@@ -157,7 +157,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "loadFoodTrashBagsToSynapse",
+						"referenceName": "loadCupsPlatesToSynapse",
 						"type": "DataFlowReference"
 					},
 					"staging": {
