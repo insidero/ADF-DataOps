@@ -13,6 +13,51 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable_withSQL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsStagingTable",
+								"type": "DatasetReference"
+							},
+							"name": "sourceSynapseStagingTable"
+						},
+						{
+							"dataset": {
+								"referenceName": "SqlDbStaging",
+								"type": "DatasetReference"
+							},
+							"name": "sourceSqlDbStaging"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "SynapseOperationalTable_sink",
+								"type": "DatasetReference"
+							},
+							"name": "SynapseOperationalTable"
+						},
+						{
+							"dataset": {
+								"referenceName": "SqlOperationalSink",
+								"type": "DatasetReference"
+							},
+							"name": "SqlOperationalSink"
+						}
+					],
+					"transformations": [],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> sourceSynapseStagingTable\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> sourceSqlDbStaging\nsourceSynapseStagingTable sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tpostSQLs:['\\n'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseOperationalTable\nsourceSqlDbStaging sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SqlOperationalSink"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LoadIntoStagingTable')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -82,7 +127,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/loadCupsPlatesToSynapse')]",
+			"name": "[concat(parameters('factoryName'), '/loadFoodTrashBagsToSynapse')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -94,16 +139,16 @@
 								"referenceName": "iri_sink_dataset",
 								"type": "DatasetReference"
 							},
-							"name": "CupsPlatesSource"
+							"name": "FoodTrashBagsSource"
 						}
 					],
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "cups_plates_synapse_dataset",
+								"referenceName": "food_trash_bags_synapse_dataset",
 								"type": "DatasetReference"
 							},
-							"name": "CupsPlatesSink"
+							"name": "FoodTrashBagsSink"
 						}
 					],
 					"transformations": [
@@ -111,7 +156,7 @@
 							"name": "ReplaceSpaceWithUnderScore"
 						}
 					],
-					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates*.csv']) ~> CupsPlatesSource\nCupsPlatesSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CupsPlatesSink"
+					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['food_trash_bags*.csv']) ~> FoodTrashBagsSource\nFoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoodTrashBagsSink"
 				}
 			},
 			"dependsOn": []
@@ -623,7 +668,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/LoadIntoStagingTable_withSQL')]"
+				"[concat(variables('factoryId'), '/dataflows/LoadIntoStagingTable_withSQL')]",
+				"[concat(variables('factoryId'), '/dataflows/LoadIntoOperationalTable_withSQL')]"
 			]
 		},
 		{
@@ -715,12 +761,12 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "loadCupsPlatesToSynapse",
+								"referenceName": "loadFoodTrashBagsToSynapse",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"CupsPlatesSource": {},
-									"CupsPlatesSink": {}
+									"FoodTrashBagsSource": {},
+									"FoodTrashBagsSink": {}
 								}
 							},
 							"staging": {
@@ -777,12 +823,54 @@
 								"computeType": "General"
 							}
 						}
+					},
+					{
+						"name": "iri_dataflow_food_trash_bags",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "iri_to_local",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "loadFoodTrashBagsToSynapse",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"FoodTrashBagsSource": {},
+									"FoodTrashBagsSink": {}
+								}
+							},
+							"staging": {
+								"linkedService": {
+									"referenceName": "LocalStorageLinkedService",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "iri-container"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							}
+						}
 					}
 				],
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/loadCupsPlatesToSynapse')]",
+				"[concat(variables('factoryId'), '/dataflows/loadFoodTrashBagsToSynapse')]",
 				"[concat(variables('factoryId'), '/dataflows/loadFoilsWrapsToSynapse')]"
 			]
 		}

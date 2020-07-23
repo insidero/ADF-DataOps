@@ -437,6 +437,27 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/food_trash_bags_synapse_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "foodTrashBags"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -468,56 +489,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
 				"[concat(variables('factoryId'), '/datasets/SynapseOperationalTable_sink')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable_withSQL')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference"
-							},
-							"name": "sourceSynapseStagingTable"
-						},
-						{
-							"dataset": {
-								"referenceName": "SqlDbStaging",
-								"type": "DatasetReference"
-							},
-							"name": "sourceSqlDbStaging"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "SynapseOperationalTable_sink",
-								"type": "DatasetReference"
-							},
-							"name": "SynapseOperationalTable"
-						},
-						{
-							"dataset": {
-								"referenceName": "SqlOperationalSink",
-								"type": "DatasetReference"
-							},
-							"name": "SqlOperationalSink"
-						}
-					],
-					"transformations": [],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> sourceSynapseStagingTable\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> sourceSqlDbStaging\nsourceSynapseStagingTable sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tpostSQLs:['\\n'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseOperationalTable\nsourceSqlDbStaging sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SqlOperationalSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
-				"[concat(variables('factoryId'), '/datasets/SqlDbStaging')]",
-				"[concat(variables('factoryId'), '/datasets/SynapseOperationalTable_sink')]",
-				"[concat(variables('factoryId'), '/datasets/SqlOperationalSink')]"
 			]
 		}
 	]
