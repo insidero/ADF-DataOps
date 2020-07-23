@@ -1011,12 +1011,12 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "loadFoodTrashBagsToSynapse",
+								"referenceName": "loadCupsPlatesToSynapse",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"FoodTrashBagsSource": {},
-									"FoodTrashBagsSink": {}
+									"CupsPlatesSource": {},
+									"CupsPlatesSink": {}
 								}
 							},
 							"staging": {
@@ -1095,12 +1095,12 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "loadFoodTrashBagsToSynapse",
+								"referenceName": "loadCupsPlatesToSynapse",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"FoodTrashBagsSource": {},
-									"FoodTrashBagsSink": {}
+									"CupsPlatesSource": {},
+									"CupsPlatesSink": {}
 								}
 							},
 							"staging": {
@@ -1122,7 +1122,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/iri_source_dataset')]",
 				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
-				"[concat(variables('factoryId'), '/dataflows/loadFoodTrashBagsToSynapse')]",
+				"[concat(variables('factoryId'), '/dataflows/loadCupsPlatesToSynapse')]",
 				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]",
 				"[concat(variables('factoryId'), '/dataflows/loadFoilsWrapsToSynapse')]"
 			]
@@ -1233,7 +1233,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/loadFoodTrashBagsToSynapse')]",
+			"name": "[concat(parameters('factoryName'), '/loadCupsPlatesToSynapse')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -1245,16 +1245,16 @@
 								"referenceName": "iri_sink_dataset",
 								"type": "DatasetReference"
 							},
-							"name": "FoodTrashBagsSource"
+							"name": "CupsPlatesSource"
 						}
 					],
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "food_trash_bags_synapse_dataset",
+								"referenceName": "cups_plates_synapse_dataset",
 								"type": "DatasetReference"
 							},
-							"name": "FoodTrashBagsSink"
+							"name": "CupsPlatesSink"
 						}
 					],
 					"transformations": [
@@ -1262,12 +1262,12 @@
 							"name": "ReplaceSpaceWithUnderScore"
 						}
 					],
-					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['food_trash_bags*.csv']) ~> FoodTrashBagsSource\nFoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoodTrashBagsSink"
+					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['food_trash_bags*.csv']) ~> CupsPlatesSource\nCupsPlatesSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CupsPlatesSink"
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/food_trash_bags_synapse_dataset')]"
+				"[concat(variables('factoryId'), '/datasets/cups_plates_synapse_dataset')]"
 			]
 		},
 		{
