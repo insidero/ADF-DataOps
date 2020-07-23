@@ -1,5 +1,5 @@
 {
-	"name": "iri_synapse_dataset",
+	"name": "iri_cups_plates_synapse_dataset",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "iriSynapse",
