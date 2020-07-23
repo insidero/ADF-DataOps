@@ -127,7 +127,8 @@
 						"linkedService": {
 							"referenceName": "LocalStorageLinkedService",
 							"type": "LinkedServiceReference"
-						}
+						},
+						"folderPath": "iri-container"
 					},
 					"compute": {
 						"coreCount": 8,
