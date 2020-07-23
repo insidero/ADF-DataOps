@@ -31,6 +31,5 @@ steps:
       location: $(LOCATION)
       templateLocation: "Linked artifact"
       csmFile: "$(Build.SourcesDirectory)/schemaCustomerADF/ARMTemplateForFactory.json"
-      overrideParameters: "-baseName $(BASE_NAME) -location $(LOCATION) -environment $(ENVIRONMENT)"
       deploymentMode: "Incremental"
     displayName: "Deploy DataOps resources to Azure"
