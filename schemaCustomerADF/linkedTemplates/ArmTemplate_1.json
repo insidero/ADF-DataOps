@@ -63,16 +63,16 @@
 								"referenceName": "iri_sink_dataset",
 								"type": "DatasetReference"
 							},
-							"name": "Source"
+							"name": "CupsPlatesSource"
 						}
 					],
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "iri_synapse_dataset",
+								"referenceName": "cups_plates_synapse_dataset",
 								"type": "DatasetReference"
 							},
-							"name": "Sink"
+							"name": "CupsPlatesSink"
 						}
 					],
 					"transformations": [
@@ -80,7 +80,7 @@
 							"name": "ReplaceSpaceWithUnderScore"
 						}
 					],
-					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['cups_plates*.csv']) ~> Source\nSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Sink"
+					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['cups_plates*.csv']) ~> CupsPlatesSource\nCupsPlatesSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CupsPlatesSink"
 				}
 			},
 			"dependsOn": []
@@ -651,8 +651,8 @@
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
-									"Source": {},
-									"Sink": {}
+									"CupsPlatesSource": {},
+									"CupsPlatesSink": {}
 								}
 							},
 							"staging": {

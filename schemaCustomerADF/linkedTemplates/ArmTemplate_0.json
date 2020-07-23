@@ -395,7 +395,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/iri_synapse_dataset')]",
+			"name": "[concat(parameters('factoryName'), '/cups_plates_synapse_dataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -408,7 +408,7 @@
 				"schema": [],
 				"typeProperties": {
 					"schema": "",
-					"table": "iritable"
+					"table": "cupsPlates"
 				}
 			},
 			"dependsOn": [
