@@ -1,5 +1,5 @@
 {
-	"name": "loadToSynapse",
+	"name": "loadCupsPlatesToSynapse",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {

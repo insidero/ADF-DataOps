@@ -83,7 +83,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "loadToSynapse",
+						"referenceName": "loadCupsPlatesToSynapse",
 						"type": "DataFlowReference"
 					},
 					"staging": {
