@@ -1805,13 +1805,57 @@
 								"parameters": {}
 							}
 						]
+					},
+					{
+						"name": "cupsPlates_dataflow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "iriProdDim_to_local",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "cupsPlatesDim_transformations",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"cupsPlatesDimSource": {},
+									"cupsPlatesDimSink": {}
+								}
+							},
+							"staging": {
+								"linkedService": {
+									"referenceName": "LocalStorageLinkedService",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "iri-prod-dim-container"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							}
+						}
 					}
 				],
 				"annotations": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_source_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]"
+				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
+				"[concat(variables('factoryId'), '/dataflows/cupsPlatesDim_transformations')]",
+				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
 			]
 		},
 		{
@@ -1835,32 +1879,7 @@
 					"escapeChar": "\\",
 					"quoteChar": "\""
 				},
-				"schema": [
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					}
-				]
+				"schema": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/iri_source_blobstorage_linkedservice')]"
@@ -1887,10 +1906,102 @@
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
-				"schema": []
+				"schema": [
+					{
+						"name": "Brand",
+						"type": "String"
+					},
+					{
+						"name": "Major Brand",
+						"type": "String"
+					},
+					{
+						"name": "Manufacturer",
+						"type": "String"
+					},
+					{
+						"name": "Parent Company",
+						"type": "String"
+					},
+					{
+						"name": "Sub Category",
+						"type": "String"
+					},
+					{
+						"name": "Category",
+						"type": "String"
+					},
+					{
+						"name": "Aisle",
+						"type": "String"
+					},
+					{
+						"name": "Department",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/cupsPlatesDim_transformations')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "iri_prod_dim_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "cupsPlatesDimSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "iri_cupsplates_dim_synapse_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "cupsPlatesDimSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
+						}
+					],
+					"script": "source(output(\n\t\tBrand as string,\n\t\t{Major Brand} as string,\n\t\tManufacturer as string,\n\t\t{Parent Company} as string,\n\t\t{Sub Category} as string,\n\t\tCategory as string,\n\t\tAisle as string,\n\t\tDepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates.csv']) ~> cupsPlatesDimSource\ncupsPlatesDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> cupsPlatesDimSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/iri_cupsplates_dim_synapse_dataset')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iri_cupsplates_dim_synapse_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "cupPlatesDim"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
 			]
 		}
 	]
