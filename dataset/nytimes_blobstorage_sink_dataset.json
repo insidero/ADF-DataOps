@@ -18,6 +18,31 @@
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
-		"schema": []
+		"schema": [
+			{
+				"name": "date",
+				"type": "String"
+			},
+			{
+				"name": "county",
+				"type": "String"
+			},
+			{
+				"name": "state",
+				"type": "String"
+			},
+			{
+				"name": "fips",
+				"type": "String"
+			},
+			{
+				"name": "cases",
+				"type": "String"
+			},
+			{
+				"name": "deaths",
+				"type": "String"
+			}
+		]
 	}
 }
