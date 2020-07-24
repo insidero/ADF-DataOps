@@ -250,6 +250,25 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/iri_foodTrashBags_synapse_linkedservice')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "foodTrashBagsDim"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -638,480 +657,41 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/LoadToSynapse')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
+			"name": "[concat(parameters('factoryName'), '/foodTrashBagsDim_transformations')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"activities": [
-					{
-						"name": "Copy latest data",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ArmtemplateTestDatasetIn",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ArmtemplateTestDatasetOut",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "Verify Master Key",
-						"type": "Lookup",
-						"dependsOn": [
-							{
-								"activity": "Copy latest data",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlDWSource",
-								"sqlReaderQuery": "IF (select Count(*) from sys.symmetric_keys where name like '%DatabaseMasterKey%') = 0\n\nBEGIN\n\nCREATE master key;\n\nIF NOT EXISTS ( SELECT  * FROM sys.schemas WHERE name = N'definitive_HC' )\n\n    EXEC('CREATE SCHEMA [definitive_HC] AUTHORIZATION [dbo]');\nselect Count(*) from sys.symmetric_keys;\n\n\nEND\n\nELSE \n\nBEGIN\nIF NOT EXISTS ( SELECT  * FROM sys.schemas WHERE name = N'definitive_HC' )\n\n    EXEC('CREATE SCHEMA [definitive_HC] AUTHORIZATION [dbo]');\n\nselect Count(*) from sys.symmetric_keys;\n\nEND\n",
-								"queryTimeout": "02:00:00"
-							},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
 							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
+								"referenceName": "iri_prod_dim_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "foodTrashBagsSource"
 						}
-					},
-					{
-						"name": "LoadIntoStagingTable",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [
-							{
-								"activity": "Verify Master Key",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "LoadIntoStagingTable",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"SourceCSV": {},
-									"SynapseStagingSink": {}
-								}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "iri_foodTrashBags_synapse_linkedservice",
+								"type": "DatasetReference"
 							},
-							"staging": {
-								"linkedService": {
-									"referenceName": "ArmtemplateStorageLinkedService",
-									"type": "LinkedServiceReference"
-								},
-								"folderPath": "staging"
-							},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							}
+							"name": "foodTrashBagsSink"
 						}
-					},
-					{
-						"name": "LoadIntoOperationalTable",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [
-							{
-								"activity": "LoadIntoStagingTable",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "LoadIntoOperationalTable",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"sourceSynapseStagingTable": {},
-									"SynapseOperationalTable": {}
-								}
-							},
-							"staging": {
-								"linkedService": {
-									"referenceName": "ArmtemplateStorageLinkedService",
-									"type": "LinkedServiceReference"
-								},
-								"folderPath": "staging"
-							},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
 						}
-					}
-				],
-				"annotations": []
+					],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['food_trash_bags.csv']) ~> foodTrashBagsSource\nfoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> foodTrashBagsSink"
+				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/LoadIntoStagingTable')]",
-				"[concat(variables('factoryId'), '/dataflows/LoadIntoOperationalTable')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LoadToSynapseAndSQL')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy latest data",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ArmtemplateTestDatasetIn",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ArmtemplateTestDatasetOut",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "Verify Master Key",
-						"type": "Lookup",
-						"dependsOn": [
-							{
-								"activity": "Copy latest data",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 3,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlDWSource",
-								"sqlReaderQuery": "IF (select Count(*) from sys.symmetric_keys where name like '%DatabaseMasterKey%') = 0\n\nBEGIN\n\nCREATE master key;\n\nIF NOT EXISTS ( SELECT  * FROM sys.schemas WHERE name = N'definitive_HC' )\n\n    EXEC('CREATE SCHEMA [definitive_HC] AUTHORIZATION [dbo]');\nselect Count(*) from sys.symmetric_keys;\n\nEND\n\nELSE \n\nBEGIN\nIF NOT EXISTS ( SELECT  * FROM sys.schemas WHERE name = N'definitive_HC' )\n\n    EXEC('CREATE SCHEMA [definitive_HC] AUTHORIZATION [dbo]');\n\nselect Count(*) from sys.symmetric_keys;\n\nEND\n",
-								"queryTimeout": "02:00:00"
-							},
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						}
-					},
-					{
-						"name": "LoadIntoStagingTable_withSQL",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [
-							{
-								"activity": "Verify Schema in SQL DB",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "LoadIntoStagingTable_withSQL",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"SourceCSV": {},
-									"SynapseStagingSink": {},
-									"SQLStagingSink": {}
-								}
-							},
-							"staging": {
-								"linkedService": {
-									"referenceName": "ArmtemplateStorageLinkedService",
-									"type": "LinkedServiceReference"
-								},
-								"folderPath": "staging"
-							},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							}
-						}
-					},
-					{
-						"name": "LoadIntoOperationalTable_withSQL",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [
-							{
-								"activity": "LoadIntoStagingTable_withSQL",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "LoadIntoOperationalTable_withSQL",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"sourceSynapseStagingTable": {},
-									"sourceSqlDbStaging": {},
-									"SynapseOperationalTable": {},
-									"SqlOperationalSink": {}
-								}
-							},
-							"staging": {
-								"linkedService": {
-									"referenceName": "ArmtemplateStorageLinkedService",
-									"type": "LinkedServiceReference"
-								},
-								"folderPath": "staging"
-							},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							}
-						}
-					},
-					{
-						"name": "Verify Schema in SQL DB",
-						"type": "Lookup",
-						"dependsOn": [
-							{
-								"activity": "Verify Master Key",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 3,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": "IF NOT EXISTS ( SELECT  * FROM sys.schemas WHERE name = N'definitive_HC') \n\nBEGIN\n\n    EXEC('CREATE SCHEMA [definitive_HC] AUTHORIZATION [dbo]');\n\nselect Count(*) from sys.symmetric_keys;\n\nEND\n\nELSE \n\nBEGIN\n\nselect Count(*) from sys.symmetric_keys;\n\nEND",
-								"queryTimeout": "02:00:00"
-							},
-							"dataset": {
-								"referenceName": "SqlDbStaging",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						}
-					},
-					{
-						"name": "Create Views in Synapse",
-						"type": "Lookup",
-						"dependsOn": [
-							{
-								"activity": "LoadIntoOperationalTable_withSQL",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlDWSource",
-								"sqlReaderQuery": "IF EXISTS ( SELECT  * FROM sys.schemas WHERE name = N'definitive_HC') \n\nBEGIN\nIF NOT EXISTS (select * from sys.views where name = N'dhc_view')\n    EXEC('create view definitive_HC.dhc_view as select State_Name, Num_Staffed_Beds from definitive_HC.operationaldhc;')\nselect Count(*) from sys.symmetric_keys;\n\nEND\n\nELSE \n\nBEGIN\n\nselect Count(*) from sys.symmetric_keys;\n\nEND",
-								"queryTimeout": "02:00:00"
-							},
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						}
-					},
-					{
-						"name": "Create Views in SQL DB",
-						"type": "Lookup",
-						"dependsOn": [
-							{
-								"activity": "LoadIntoOperationalTable_withSQL",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": "IF EXISTS ( SELECT  * FROM sys.schemas WHERE name = N'definitive_HC') \n\nBEGIN\nIF NOT EXISTS (select * from sys.views where name = N'dhc_view')\n    EXEC('create view definitive_HC.dhc_view as select State_Name, Num_Staffed_Beds from definitive_HC.operationaldhc;')\nselect Count(*) from sys.symmetric_keys;\n\nEND\n\nELSE \n\nBEGIN\n\nselect Count(*) from sys.symmetric_keys;\n\nEND",
-								"queryTimeout": "02:00:00"
-							},
-							"dataset": {
-								"referenceName": "SqlDbStaging",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						}
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/LoadIntoStagingTable_withSQL')]",
-				"[concat(variables('factoryId'), '/dataflows/LoadIntoOperationalTable_withSQL')]"
+				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/iri_foodTrashBags_synapse_linkedservice')]"
 			]
 		}
 	]
