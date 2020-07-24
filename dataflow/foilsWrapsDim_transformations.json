@@ -1,0 +1,32 @@
+{
+	"name": "foilsWrapsDim_transformations",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "iri_prod_dim_sink_dataset",
+						"type": "DatasetReference"
+					},
+					"name": "foilsWrapsDimSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "iri_foilsWraps_synapse_dataset",
+						"type": "DatasetReference"
+					},
+					"name": "foilsWrapsDimSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ReplaceSpaceWithUnderScore"
+				}
+			],
+			"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['foils_wraps.csv']) ~> foilsWrapsDimSource\nfoilsWrapsDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> foilsWrapsDimSink"
+		}
+	}
+}
