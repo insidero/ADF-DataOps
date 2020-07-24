@@ -38,6 +38,10 @@
 		"iriSynapse_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'iriSynapse'"
+		},
+		"nytimes_github_linkedservice_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/"
 		}
 	},
 	"variables": {
@@ -144,6 +148,21 @@
 				"type": "AzureSqlDW",
 				"typeProperties": {
 					"connectionString": "[parameters('iriSynapse_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/nytimes_github_linkedservice')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('nytimes_github_linkedservice_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
 				}
 			},
 			"dependsOn": []
@@ -455,40 +474,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference"
-							},
-							"name": "sourceSynapseStagingTable"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "SynapseOperationalTable_sink",
-								"type": "DatasetReference"
-							},
-							"name": "SynapseOperationalTable"
-						}
-					],
-					"transformations": [],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> sourceSynapseStagingTable\nsourceSynapseStagingTable sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tpostSQLs:['\\n'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseOperationalTable"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
-				"[concat(variables('factoryId'), '/datasets/SynapseOperationalTable_sink')]"
 			]
 		}
 	]

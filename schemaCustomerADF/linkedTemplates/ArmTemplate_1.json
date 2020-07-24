@@ -13,6 +13,132 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/nytimes_github_source_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "nytimes_github_linkedservice",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "/nytimes/covid-19-data/master/us-counties.csv"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/nytimes_blobstorage_sink_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LocalStorageLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "nytimes-covid.csv",
+						"container": "nytimes-container"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "date",
+						"type": "String"
+					},
+					{
+						"name": "county",
+						"type": "String"
+					},
+					{
+						"name": "state",
+						"type": "String"
+					},
+					{
+						"name": "fips",
+						"type": "String"
+					},
+					{
+						"name": "cases",
+						"type": "String"
+					},
+					{
+						"name": "deaths",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/nytimes_synapse_sink_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "nyTimes"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsStagingTable",
+								"type": "DatasetReference"
+							},
+							"name": "sourceSynapseStagingTable"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "SynapseOperationalTable_sink",
+								"type": "DatasetReference"
+							},
+							"name": "SynapseOperationalTable"
+						}
+					],
+					"transformations": [],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> sourceSynapseStagingTable\nsourceSynapseStagingTable sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tpostSQLs:['\\n'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseOperationalTable"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable_withSQL')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -250,6 +376,50 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/dataflow_covid_nytimes')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "nytimes_blobstorage_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "sourceCSV"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "nytimes_synapse_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "SinkSynapse"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DropLineageColumn"
+						},
+						{
+							"name": "AddNewColumns"
+						},
+						{
+							"name": "ModifyHeadingStyle"
+						}
+					],
+					"script": "source(output(\n\t\tdate as string,\n\t\tcounty as string,\n\t\tstate as string,\n\t\tfips as string,\n\t\tcases as string,\n\t\tdeaths as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'lineage',\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['nytimes-covid.csv']) ~> sourceCSV\nModifyHeadingStyle select(mapColumn(\n\t\tLoad_date,\n\t\tLoad_time,\n\t\tRecord_Date = Date,\n\t\tCounty,\n\t\tState,\n\t\tFips,\n\t\tCases,\n\t\tDeaths,\n\t\tIso_country,\n\t\tDeath_rate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DropLineageColumn\nsourceCSV derive(Load_time = substring(toString(currentTimestamp()), 12,25),\n\t\tLoad_date = currentDate(),\n\t\tIso_country = 'USA',\n\t\tDeath_rate = concat(toString(round(multiply(divide(toFloat(deaths),toFloat(cases)),100),4)),'%')) ~> AddNewColumns\nAddNewColumns select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tinitCap($$) = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ModifyHeadingStyle\nDropLineageColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SinkSynapse"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/nytimes_blobstorage_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/nytimes_synapse_sink_dataset')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LoadToSynapse')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -434,7 +604,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/LoadIntoStagingTable')]"
+				"[concat(variables('factoryId'), '/dataflows/LoadIntoStagingTable')]",
+				"[concat(variables('factoryId'), '/dataflows/LoadIntoOperationalTable')]"
 			]
 		},
 		{
@@ -926,6 +1097,119 @@
 				"[concat(variables('factoryId'), '/dataflows/loadCupsPlatesToSynapse')]",
 				"[concat(variables('factoryId'), '/dataflows/loadFoilsWrapsToSynapse')]",
 				"[concat(variables('factoryId'), '/dataflows/loadFoodTrashBagsToSynapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/covid_nytimes_pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "To Raw Overwrite",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "nytimes_github_source_dataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "nytimes_blobstorage_sink_dataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Reformat Columns",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "To Raw Overwrite",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow_covid_nytimes",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"sourceCSV": {},
+									"SinkSynapse": {}
+								}
+							},
+							"staging": {
+								"linkedService": {
+									"referenceName": "LocalStorageLinkedService",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "nytimes-container"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							}
+						}
+					}
+				],
+				"folder": {
+					"name": "Case Data"
+				},
+				"annotations": [
+					"covidtracking"
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/nytimes_github_source_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/nytimes_blobstorage_sink_dataset')]",
+				"[concat(variables('factoryId'), '/dataflows/dataflow_covid_nytimes')]"
 			]
 		}
 	]

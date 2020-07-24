@@ -28,6 +28,9 @@
 		},
 		"iriSynapse_connectionString": {
 			"value": ""
+		},
+		"nytimes_github_linkedservice_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/"
 		}
 	}
 }
