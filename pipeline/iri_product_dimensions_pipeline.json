@@ -63,7 +63,7 @@
 				]
 			},
 			{
-				"name": "dataflow1",
+				"name": "cupsPlates_dataflow",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
@@ -83,7 +83,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "dataflow1",
+						"referenceName": "cupsPlatesDim_transformations",
 						"type": "DataFlowReference"
 					},
 					"staging": {

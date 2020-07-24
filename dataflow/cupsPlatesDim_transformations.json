@@ -1,5 +1,5 @@
 {
-	"name": "dataflow1",
+	"name": "cupsPlatesDim_transformations",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
