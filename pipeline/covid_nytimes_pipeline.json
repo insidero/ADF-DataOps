@@ -3,44 +3,6 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "To Raw Partition",
-				"description": "",
-				"type": "Copy",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "DelimitedTextSource",
-						"storeSettings": {
-							"type": "HttpReadSettings",
-							"requestMethod": "GET"
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
-						}
-					},
-					"sink": {
-						"type": "DelimitedTextSink",
-						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
-						},
-						"formatSettings": {
-							"type": "DelimitedTextWriteSettings",
-							"quoteAllText": true,
-							"fileExtension": ".csv"
-						}
-					},
-					"enableStaging": false
-				}
-			},
-			{
 				"name": "To Raw Overwrite",
 				"type": "Copy",
 				"dependsOn": [],
@@ -63,30 +25,19 @@
 							"type": "DelimitedTextReadSettings"
 						}
 					},
-					"sink": {
-						"type": "DelimitedTextSink",
-						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
-						},
-						"formatSettings": {
-							"type": "DelimitedTextWriteSettings",
-							"quoteAllText": true,
-							"fileExtension": ".csv"
-						}
-					},
 					"enableStaging": false
-				}
+				},
+				"inputs": [
+					{
+						"referenceName": "nytimes_github_source_dataset",
+						"type": "DatasetReference"
+					}
+				]
 			},
 			{
 				"name": "Reformat Columns",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
-					{
-						"activity": "To Raw Partition",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
 					{
 						"activity": "To Raw Overwrite",
 						"dependencyConditions": [
@@ -107,88 +58,6 @@
 						"coreCount": 8,
 						"computeType": "General"
 					}
-				}
-			},
-			{
-				"name": "JSONL to JSON LATEST",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Reformat Columns",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "JsonSource",
-						"storeSettings": {
-							"type": "AzureBlobStorageReadSettings",
-							"recursive": true
-						}
-					},
-					"sink": {
-						"type": "JsonSink",
-						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
-						},
-						"formatSettings": {
-							"type": "JsonWriteSettings",
-							"quoteAllText": true,
-							"filePattern": "arrayOfObjects"
-						}
-					},
-					"enableStaging": false
-				}
-			},
-			{
-				"name": "JSONL to JSON",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Reformat Columns",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "JsonSource",
-						"storeSettings": {
-							"type": "AzureBlobStorageReadSettings",
-							"recursive": true
-						}
-					},
-					"sink": {
-						"type": "JsonSink",
-						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
-						},
-						"formatSettings": {
-							"type": "JsonWriteSettings",
-							"quoteAllText": true,
-							"filePattern": "arrayOfObjects"
-						}
-					},
-					"enableStaging": false
 				}
 			}
 		],

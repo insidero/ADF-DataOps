@@ -1,0 +1,22 @@
+{
+	"name": "nytimes_github_source_dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "nytimes_github_linkedservice",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": "/nytimes/covid-19-data/master/us-counties.csv"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
