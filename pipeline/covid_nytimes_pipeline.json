@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "To Raw Overwrite",
+				"name": "github_to_local",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
@@ -52,11 +52,11 @@
 				]
 			},
 			{
-				"name": "Reformat Columns",
+				"name": "dataflow_nytimes",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
-						"activity": "To Raw Overwrite",
+						"activity": "github_to_local",
 						"dependencyConditions": [
 							"Succeeded"
 						]
