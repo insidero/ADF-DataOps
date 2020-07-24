@@ -1847,6 +1847,48 @@
 								"computeType": "General"
 							}
 						}
+					},
+					{
+						"name": "foilsWraps_dataflow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "iriProdDim_to_local",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "foilsWrapsDim_transformations",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"foilsWrapsDimSource": {},
+									"foilsWrapsDimSink": {}
+								}
+							},
+							"staging": {
+								"linkedService": {
+									"referenceName": "LocalStorageLinkedService",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "iri-prod-dim-container"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							}
+						}
 					}
 				],
 				"annotations": []
@@ -1855,7 +1897,8 @@
 				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_source_dataset')]",
 				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
 				"[concat(variables('factoryId'), '/dataflows/cupsPlatesDim_transformations')]",
-				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
+				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]",
+				"[concat(variables('factoryId'), '/dataflows/foilsWrapsDim_transformations')]"
 			]
 		},
 		{
@@ -1966,6 +2009,65 @@
 				"typeProperties": {
 					"schema": "",
 					"table": "cupsPlatesDim"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/foilsWrapsDim_transformations')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "iri_prod_dim_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "foilsWrapsDimSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "iri_foilsWraps_synapse_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "foilsWrapsDimSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
+						}
+					],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['foils_wraps.csv']) ~> foilsWrapsDimSource\nfoilsWrapsDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> foilsWrapsDimSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/iri_foilsWraps_synapse_dataset')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iri_foilsWraps_synapse_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "foilsWrapsDim"
 				}
 			},
 			"dependsOn": [
