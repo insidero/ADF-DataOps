@@ -1,0 +1,32 @@
+{
+	"name": "foodTrashBagsDim_transformations",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "iri_prod_dim_sink_dataset",
+						"type": "DatasetReference"
+					},
+					"name": "foodTrashBagsSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "iri_foodTrashBags_synapse_linkedservice",
+						"type": "DatasetReference"
+					},
+					"name": "foodTrashBagsSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ReplaceSpaceWithUnderScore"
+				}
+			],
+			"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['food_trash_bags.csv']) ~> foodTrashBagsSource\nfoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> foodTrashBagsSink"
+		}
+	}
+}

@@ -1,0 +1,16 @@
+{
+	"name": "iri_foodTrashBags_synapse_linkedservice",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "iriSynapse",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "",
+			"table": "foodTrashBagsDim"
+		}
+	}
+}
