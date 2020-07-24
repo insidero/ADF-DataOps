@@ -39,6 +39,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'iri_source_blobstorage_linkedservice'"
 		},
+		"nytimes_public_blob_linkedservice_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'nytimes_public_blob_linkedservice'"
+		},
 		"nytimes_github_linkedservice_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://raw.githubusercontent.com/"
@@ -578,7 +582,7 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "nytimes_github_source_dataset",
+								"referenceName": "nytimes_publib_blob_source_dataset",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -642,7 +646,7 @@
 				]
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/nytimes_github_source_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/nytimes_publib_blob_source_dataset')]",
 				"[concat(variables('factoryId'), '/datasets/nytimes_blobstorage_sink_dataset')]",
 				"[concat(variables('factoryId'), '/dataflows/dataflow_covid_nytimes')]",
 				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
@@ -1217,20 +1221,22 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/nytimes_github_source_dataset')]",
+			"name": "[concat(parameters('factoryName'), '/nytimes_publib_blob_source_dataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "nytimes_github_linkedservice",
+					"referenceName": "nytimes_public_blob_linkedservice",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
-						"type": "HttpServerLocation",
-						"relativeUrl": "/nytimes/covid-19-data/master/us-counties.csv"
+						"type": "AzureBlobStorageLocation",
+						"fileName": "covid_tracking.csv",
+						"folderPath": "curated/covid-19/covid_tracking/latest",
+						"container": "public"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
@@ -1240,7 +1246,7 @@
 				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/nytimes_github_linkedservice')]"
+				"[concat(variables('factoryId'), '/linkedServices/nytimes_public_blob_linkedservice')]"
 			]
 		},
 		{
@@ -1718,6 +1724,19 @@
 				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
 				"[concat(variables('factoryId'), '/datasets/food_trash_bags_synapse_dataset')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/nytimes_public_blob_linkedservice')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('nytimes_public_blob_linkedservice_connectionString')]"
+				}
+			},
+			"dependsOn": []
 		}
 	]
 }

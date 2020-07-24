@@ -29,6 +29,9 @@
 		"iri_source_blobstorage_linkedservice_connectionString": {
 			"value": ""
 		},
+		"nytimes_public_blob_linkedservice_connectionString": {
+			"value": ""
+		},
 		"nytimes_github_linkedservice_properties_typeProperties_url": {
 			"value": "https://raw.githubusercontent.com/"
 		},

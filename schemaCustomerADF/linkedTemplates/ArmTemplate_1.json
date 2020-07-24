@@ -13,6 +13,57 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/iri_source_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iri_source_blobstorage_linkedservice",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "by_country",
+						"container": "irimscovoos"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "Date",
+						"type": "String"
+					},
+					{
+						"name": "County",
+						"type": "String"
+					},
+					{
+						"name": "Product Category",
+						"type": "String"
+					},
+					{
+						"name": "Product Brand",
+						"type": "String"
+					},
+					{
+						"name": "In Stock Rate",
+						"type": "String"
+					},
+					{
+						"name": "Agg Weight",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/nytimes_blobstorage_sink_dataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -64,20 +115,22 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/nytimes_github_source_dataset')]",
+			"name": "[concat(parameters('factoryName'), '/nytimes_publib_blob_source_dataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "nytimes_github_linkedservice",
+					"referenceName": "nytimes_public_blob_linkedservice",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
-						"type": "HttpServerLocation",
-						"relativeUrl": "/nytimes/covid-19-data/master/us-counties.csv"
+						"type": "AzureBlobStorageLocation",
+						"fileName": "covid_tracking.csv",
+						"folderPath": "curated/covid-19/covid_tracking/latest",
+						"container": "public"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
@@ -940,7 +993,7 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "nytimes_github_source_dataset",
+								"referenceName": "nytimes_publib_blob_source_dataset",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -1004,7 +1057,7 @@
 				]
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/nytimes_github_source_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/nytimes_publib_blob_source_dataset')]",
 				"[concat(variables('factoryId'), '/datasets/nytimes_blobstorage_sink_dataset')]",
 				"[concat(variables('factoryId'), '/dataflows/dataflow_covid_nytimes')]"
 			]
@@ -1207,6 +1260,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_source_dataset')]",
 				"[concat(variables('factoryId'), '/dataflows/loadCupsPlatesToSynapse')]",
 				"[concat(variables('factoryId'), '/dataflows/loadFoilsWrapsToSynapse')]",
 				"[concat(variables('factoryId'), '/dataflows/loadFoodTrashBagsToSynapse')]"

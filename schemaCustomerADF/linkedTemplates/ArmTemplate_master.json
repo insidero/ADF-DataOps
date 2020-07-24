@@ -39,6 +39,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'iri_source_blobstorage_linkedservice'"
 		},
+		"nytimes_public_blob_linkedservice_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'nytimes_public_blob_linkedservice'"
+		},
 		"nytimes_github_linkedservice_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://raw.githubusercontent.com/"
@@ -93,6 +97,9 @@
 					},
 					"iri_source_blobstorage_linkedservice_connectionString": {
 						"value": "[parameters('iri_source_blobstorage_linkedservice_connectionString')]"
+					},
+					"nytimes_public_blob_linkedservice_connectionString": {
+						"value": "[parameters('nytimes_public_blob_linkedservice_connectionString')]"
 					},
 					"nytimes_github_linkedservice_properties_typeProperties_url": {
 						"value": "[parameters('nytimes_github_linkedservice_properties_typeProperties_url')]"
