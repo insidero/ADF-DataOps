@@ -1,0 +1,23 @@
+{
+	"name": "nytimes_blobstorage_sink_dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LocalStorageLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "nytimes-covid.csv",
+				"container": "nytimes-container"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

@@ -25,11 +25,28 @@
 							"type": "DelimitedTextReadSettings"
 						}
 					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
 					"enableStaging": false
 				},
 				"inputs": [
 					{
 						"referenceName": "nytimes_github_source_dataset",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "nytimes_blobstorage_sink_dataset",
 						"type": "DatasetReference"
 					}
 				]
@@ -54,6 +71,10 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflow_covid_nytimes",
+						"type": "DataFlowReference"
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
@@ -61,32 +82,6 @@
 				}
 			}
 		],
-		"parameters": {
-			"sourceFilename": {
-				"type": "string",
-				"defaultValue": "us-counties-raw.csv"
-			},
-			"sourceRelativeUrl": {
-				"type": "string",
-				"defaultValue": "/nytimes/covid-19-data/master/us-counties.csv"
-			},
-			"blobContainer": {
-				"type": "string",
-				"defaultValue": "public"
-			},
-			"rawBlobDirectory": {
-				"type": "string",
-				"defaultValue": "raw/covid-19/covid_tracking"
-			},
-			"curatedBlobDirectory": {
-				"type": "string",
-				"defaultValue": "curated/covid-19/covid_tracking"
-			},
-			"filename": {
-				"type": "string",
-				"defaultValue": "covid_tracking"
-			}
-		},
 		"folder": {
 			"name": "Case Data"
 		},
