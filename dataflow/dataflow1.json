@@ -12,13 +12,21 @@
 					"name": "cupsPlatesDimSource"
 				}
 			],
-			"sinks": [],
-			"transformations": [
+			"sinks": [
 				{
-					"name": "Select1"
+					"dataset": {
+						"referenceName": "iri_cupsplates_dim_synapse_dataset",
+						"type": "DatasetReference"
+					},
+					"name": "cupsPlatesDimSink"
 				}
 			],
-			"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates.csv']) ~> cupsPlatesDimSource\ncupsPlatesDimSource select(skipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Select1"
+			"transformations": [
+				{
+					"name": "ReplaceSpaceWithUnderScore"
+				}
+			],
+			"script": "source(output(\n\t\tBrand as string,\n\t\t{Major Brand} as string,\n\t\tManufacturer as string,\n\t\t{Parent Company} as string,\n\t\t{Sub Category} as string,\n\t\tCategory as string,\n\t\tAisle as string,\n\t\tDepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates.csv']) ~> cupsPlatesDimSource\ncupsPlatesDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> cupsPlatesDimSink"
 		}
 	}
 }
