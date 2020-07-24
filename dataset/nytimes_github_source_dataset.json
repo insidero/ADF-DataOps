@@ -2,15 +2,17 @@
 	"name": "nytimes_github_source_dataset",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "nytimes_github_linkedservice",
+			"referenceName": "nytimes_public_blob_linkedservice",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
-				"type": "HttpServerLocation",
-				"relativeUrl": "/nytimes/covid-19-data/master/us-counties.csv"
+				"type": "AzureBlobStorageLocation",
+				"fileName": "covid_tracking.csv",
+				"folderPath": "curated/covid-19/covid_tracking/latest",
+				"container": "public"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
