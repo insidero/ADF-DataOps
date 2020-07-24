@@ -1877,6 +1877,7 @@
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
+					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
 				"schema": []
@@ -1997,7 +1998,7 @@
 				"schema": [],
 				"typeProperties": {
 					"schema": "",
-					"table": "cupPlatesDim"
+					"table": "cupsPlatesDim"
 				}
 			},
 			"dependsOn": [
