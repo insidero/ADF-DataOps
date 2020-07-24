@@ -75,6 +75,13 @@
 						"referenceName": "dataflow_covid_nytimes",
 						"type": "DataFlowReference"
 					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "LocalStorageLinkedService",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "nytimes-container"
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
