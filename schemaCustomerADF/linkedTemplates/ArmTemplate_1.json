@@ -207,40 +207,7 @@
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
-				"schema": [
-					{
-						"name": "Brand",
-						"type": "String"
-					},
-					{
-						"name": "Major Brand",
-						"type": "String"
-					},
-					{
-						"name": "Manufacturer",
-						"type": "String"
-					},
-					{
-						"name": "Parent Company",
-						"type": "String"
-					},
-					{
-						"name": "Sub Category",
-						"type": "String"
-					},
-					{
-						"name": "Category",
-						"type": "String"
-					},
-					{
-						"name": "Aisle",
-						"type": "String"
-					},
-					{
-						"name": "Department",
-						"type": "String"
-					}
-				]
+				"schema": []
 			},
 			"dependsOn": []
 		},
@@ -605,7 +572,7 @@
 							"name": "ReplaceSpaceWithUnderScore"
 						}
 					],
-					"script": "source(output(\n\t\tBrand as string,\n\t\t{Major Brand} as string,\n\t\tManufacturer as string,\n\t\t{Parent Company} as string,\n\t\t{Sub Category} as string,\n\t\tCategory as string,\n\t\tAisle as string,\n\t\tDepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates.csv']) ~> cupsPlatesDimSource\ncupsPlatesDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> cupsPlatesDimSink"
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates.csv']) ~> cupsPlatesDimSource\ncupsPlatesDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> cupsPlatesDimSink"
 				}
 			},
 			"dependsOn": [
