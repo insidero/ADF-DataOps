@@ -1,5 +1,5 @@
 {
-	"name": "nytimes_github_source_dataset",
+	"name": "nytimes_publib_blob_source_dataset",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "nytimes_public_blob_linkedservice",

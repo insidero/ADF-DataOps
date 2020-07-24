@@ -40,7 +40,7 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "nytimes_github_source_dataset",
+						"referenceName": "nytimes_publib_blob_source_dataset",
 						"type": "DatasetReference"
 					}
 				],
