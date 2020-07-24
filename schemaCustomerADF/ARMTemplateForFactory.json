@@ -545,7 +545,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "github_to_local",
+						"name": "public_to_customer",
 						"type": "Copy",
 						"dependsOn": [],
 						"policy": {
@@ -560,8 +560,8 @@
 							"source": {
 								"type": "DelimitedTextSource",
 								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET"
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true
 								},
 								"formatSettings": {
 									"type": "DelimitedTextReadSettings"
@@ -600,7 +600,7 @@
 						"type": "ExecuteDataFlow",
 						"dependsOn": [
 							{
-								"activity": "github_to_local",
+								"activity": "public_to_customer",
 								"dependencyConditions": [
 									"Succeeded"
 								]
