@@ -1,0 +1,22 @@
+{
+	"name": "iri_prod_dim_sink_dataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LocalStorageLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "iri-prod-dim-container"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
