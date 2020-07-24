@@ -23,10 +23,10 @@
 		"LocalStorageLinkedService_connectionString": {
 			"value": ""
 		},
-		"iri_source_blobstorage_linkedservice_connectionString": {
+		"iriSynapse_connectionString": {
 			"value": ""
 		},
-		"iriSynapse_connectionString": {
+		"iri_source_blobstorage_linkedservice_connectionString": {
 			"value": ""
 		},
 		"nytimes_github_linkedservice_properties_typeProperties_url": {

@@ -31,13 +31,13 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LocalStorageLinkedService'"
 		},
-		"iri_source_blobstorage_linkedservice_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'iri_source_blobstorage_linkedservice'"
-		},
 		"iriSynapse_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'iriSynapse'"
+		},
+		"iri_source_blobstorage_linkedservice_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'iri_source_blobstorage_linkedservice'"
 		},
 		"nytimes_github_linkedservice_properties_typeProperties_url": {
 			"type": "string",
@@ -535,396 +535,118 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ArmtemplateTestDatasetIn')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
+			"name": "[concat(parameters('factoryName'), '/covid_nytimes_pipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ArmtemplateStorageLinkedService",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "covid_tracking.csv",
-						"folderPath": "curated/covid-19/covid_tracking/latest",
-						"container": "public"
+				"activities": [
+					{
+						"name": "github_to_local",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "HttpReadSettings",
+									"requestMethod": "GET"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "nytimes_github_source_dataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "nytimes_blobstorage_sink_dataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
 					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
+					{
+						"name": "dataflow_nytimes",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "github_to_local",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow_covid_nytimes",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"sourceCSV": {},
+									"SinkSynapse": {}
+								}
+							},
+							"staging": {
+								"linkedService": {
+									"referenceName": "LocalStorageLinkedService",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "nytimes-container"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							}
+						}
+					}
+				],
+				"folder": {
+					"name": "Case Data"
 				},
-				"schema": []
+				"annotations": [
+					"covidtracking"
+				]
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ArmtemplateStorageLinkedService')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ArmtemplateTestDatasetOut')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LocalStorageLinkedService",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"folderPath": "output",
-						"container": "staging"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/nytimes_github_source_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/nytimes_blobstorage_sink_dataset')]",
+				"[concat(variables('factoryId'), '/dataflows/dataflow_covid_nytimes')]",
 				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
 			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsStagingTable')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSynapseAnalyticsStaging",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "definitive_HC",
-					"table": "stagingdhc"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsStaging')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SqlDbStaging')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "definitive_HC",
-					"table": "stagingdhc"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SqlOperationalSink')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "definitive_HC",
-					"table": "operationaldhc"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SynapseOperationalTable_sink')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSynapseOperational",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "definitive_HC",
-					"table": "operationaldhc"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseOperational')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ArmtemplateStorageLinkedService')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('ArmtemplateStorageLinkedService_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureSqlDatabase_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsStaging')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDW",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureSynapseAnalyticsStaging_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseOperational')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDW",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureSynapseOperational_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LocalStorageLinkedService')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('LocalStorageLinkedService_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference"
-							},
-							"name": "sourceSynapseStagingTable"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "SynapseOperationalTable_sink",
-								"type": "DatasetReference"
-							},
-							"name": "SynapseOperationalTable"
-						}
-					],
-					"transformations": [],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> sourceSynapseStagingTable\nsourceSynapseStagingTable sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tpostSQLs:['\\n'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseOperationalTable"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
-				"[concat(variables('factoryId'), '/datasets/SynapseOperationalTable_sink')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable_withSQL')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference"
-							},
-							"name": "sourceSynapseStagingTable"
-						},
-						{
-							"dataset": {
-								"referenceName": "SqlDbStaging",
-								"type": "DatasetReference"
-							},
-							"name": "sourceSqlDbStaging"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "SynapseOperationalTable_sink",
-								"type": "DatasetReference"
-							},
-							"name": "SynapseOperationalTable"
-						},
-						{
-							"dataset": {
-								"referenceName": "SqlOperationalSink",
-								"type": "DatasetReference"
-							},
-							"name": "SqlOperationalSink"
-						}
-					],
-					"transformations": [],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> sourceSynapseStagingTable\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> sourceSqlDbStaging\nsourceSynapseStagingTable sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tpostSQLs:['\\n'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseOperationalTable\nsourceSqlDbStaging sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SqlOperationalSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
-				"[concat(variables('factoryId'), '/datasets/SqlDbStaging')]",
-				"[concat(variables('factoryId'), '/datasets/SynapseOperationalTable_sink')]",
-				"[concat(variables('factoryId'), '/datasets/SqlOperationalSink')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LoadIntoStagingTable')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ArmtemplateTestDatasetOut",
-								"type": "DatasetReference"
-							},
-							"name": "SourceCSV"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference"
-							},
-							"name": "SynapseStagingSink"
-						}
-					],
-					"transformations": [],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'filename',\n\tinferDriftedColumnTypes: true) ~> SourceCSV\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseStagingSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ArmtemplateTestDatasetOut')]",
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LoadIntoStagingTable_withSQL')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ArmtemplateTestDatasetOut",
-								"type": "DatasetReference"
-							},
-							"name": "SourceCSV"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "AzureSynapseAnalyticsStagingTable",
-								"type": "DatasetReference"
-							},
-							"name": "SynapseStagingSink"
-						},
-						{
-							"dataset": {
-								"referenceName": "SqlDbStaging",
-								"type": "DatasetReference"
-							},
-							"name": "SQLStagingSink"
-						}
-					],
-					"transformations": [],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'filename',\n\tinferDriftedColumnTypes: true) ~> SourceCSV\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseStagingSink\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SQLStagingSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ArmtemplateTestDatasetOut')]",
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
-				"[concat(variables('factoryId'), '/datasets/SqlDbStaging')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/iri_source_blobstorage_linkedservice')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('iri_source_blobstorage_linkedservice_connectionString')]"
-				}
-			},
-			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/iri_pipeline')]",
@@ -1133,12 +855,12 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/iri_source_dataset')]",
+			"name": "[concat(parameters('factoryName'), '/ArmtemplateTestDatasetIn')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "iri_source_blobstorage_linkedservice",
+					"referenceName": "ArmtemplateStorageLinkedService",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
@@ -1146,43 +868,194 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"folderPath": "by_country",
-						"container": "irimscovoos"
+						"fileName": "covid_tracking.csv",
+						"folderPath": "curated/covid-19/covid_tracking/latest",
+						"container": "public"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
-				"schema": [
-					{
-						"name": "Date",
-						"type": "String"
-					},
-					{
-						"name": "County",
-						"type": "String"
-					},
-					{
-						"name": "Product Category",
-						"type": "String"
-					},
-					{
-						"name": "Product Brand",
-						"type": "String"
-					},
-					{
-						"name": "In Stock Rate",
-						"type": "String"
-					},
-					{
-						"name": "Agg Weight",
-						"type": "String"
-					}
-				]
+				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/iri_source_blobstorage_linkedservice')]"
+				"[concat(variables('factoryId'), '/linkedServices/ArmtemplateStorageLinkedService')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ArmtemplateTestDatasetOut')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LocalStorageLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "output",
+						"container": "staging"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsStagingTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalyticsStaging",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "definitive_HC",
+					"table": "stagingdhc"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsStaging')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlDbStaging')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "definitive_HC",
+					"table": "stagingdhc"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlOperationalSink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "definitive_HC",
+					"table": "operationaldhc"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SynapseOperationalTable_sink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseOperational",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "definitive_HC",
+					"table": "operationaldhc"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseOperational')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/cups_plates_synapse_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "cupsPlates"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/foils_wraps_synapse_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "foilsWraps"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/food_trash_bags_synapse_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "foodTrashBags"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
 			]
 		},
 		{
@@ -1238,411 +1111,56 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/loadCupsPlatesToSynapse')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "iri_sink_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "CupsPlatesSource"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "cups_plates_synapse_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "CupsPlatesSink"
-						}
-					],
-					"transformations": [
-						{
-							"name": "ReplaceSpaceWithUnderScore"
-						},
-						{
-							"name": "NewColumnState"
-						},
-						{
-							"name": "RearrangeColumn"
-						}
-					],
-					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates*.csv']) ~> CupsPlatesSource\nCupsPlatesSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore derive(State = right(County, 2),\n\t\tCounty = left(County, length(County)-2)) ~> NewColumnState\nNewColumnState select(mapColumn(\n\t\tDate,\n\t\tCounty,\n\t\tState,\n\t\tProduct_Category,\n\t\tProduct_Brand,\n\t\tIn_Stock_Rate,\n\t\tAgg_Weight\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RearrangeColumn\nRearrangeColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CupsPlatesSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/cups_plates_synapse_dataset')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/cups_plates_synapse_dataset')]",
+			"name": "[concat(parameters('factoryName'), '/iri_source_dataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "iriSynapse",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "",
-					"table": "cupsPlates"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/iriSynapse')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDW",
-				"typeProperties": {
-					"connectionString": "[parameters('iriSynapse_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/loadFoilsWrapsToSynapse')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "iri_sink_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "FoilsWrapsSource"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "foils_wraps_synapse_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "FoilsWrapsSink"
-						}
-					],
-					"transformations": [
-						{
-							"name": "ReplaceSpaceWithUnderScore"
-						},
-						{
-							"name": "NewColumnState"
-						},
-						{
-							"name": "RearrangeColumn"
-						}
-					],
-					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['foils_wraps*.csv']) ~> FoilsWrapsSource\nFoilsWrapsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore derive(State = right(County, 2),\n\t\tCounty = left(County, length(County)-2)) ~> NewColumnState\nNewColumnState select(mapColumn(\n\t\tDate,\n\t\tCounty,\n\t\tState,\n\t\tProduct_Category,\n\t\tProduct_Brand,\n\t\tIn_Stock_Rate,\n\t\tAgg_Weight\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RearrangeColumn\nRearrangeColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoilsWrapsSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/foils_wraps_synapse_dataset')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/foils_wraps_synapse_dataset')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "iriSynapse",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "",
-					"table": "foilsWraps"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/food_trash_bags_synapse_dataset')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "iriSynapse",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "",
-					"table": "foodTrashBags"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/loadFoodTrashBagsToSynapse')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "iri_sink_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "FoodTrashBagsSource"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "food_trash_bags_synapse_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "FoodTrashBagsSink"
-						}
-					],
-					"transformations": [
-						{
-							"name": "ReplaceSpaceWithUnderScore"
-						},
-						{
-							"name": "NewColumnState"
-						},
-						{
-							"name": "RearrangeColumn"
-						}
-					],
-					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['food_trash_bags*.csv']) ~> FoodTrashBagsSource\nFoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore derive(State = right(County, 2),\n\t\tCounty = left(County, length(County)-2)) ~> NewColumnState\nNewColumnState select(mapColumn(\n\t\tDate,\n\t\tCounty,\n\t\tState,\n\t\tProduct_Category,\n\t\tProduct_Brand,\n\t\tIn_Stock_Rate,\n\t\tAgg_Weight\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RearrangeColumn\nRearrangeColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoodTrashBagsSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/food_trash_bags_synapse_dataset')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/covid_nytimes_pipeline')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "To Raw Overwrite",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "nytimes_github_source_dataset",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "nytimes_blobstorage_sink_dataset",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "Reformat Columns",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [
-							{
-								"activity": "To Raw Overwrite",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "dataflow_covid_nytimes",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"sourceCSV": {},
-									"SinkSynapse": {}
-								}
-							},
-							"staging": {
-								"linkedService": {
-									"referenceName": "LocalStorageLinkedService",
-									"type": "LinkedServiceReference"
-								},
-								"folderPath": "nytimes-container"
-							},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							}
-						}
-					}
-				],
-				"folder": {
-					"name": "Case Data"
-				},
-				"annotations": [
-					"covidtracking"
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/nytimes_github_source_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/nytimes_blobstorage_sink_dataset')]",
-				"[concat(variables('factoryId'), '/dataflows/dataflow_covid_nytimes')]",
-				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/dataflow_covid_nytimes')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "nytimes_blobstorage_sink_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "sourceCSV"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "nytimes_synapse_sink_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "SinkSynapse"
-						}
-					],
-					"transformations": [
-						{
-							"name": "DropLineageColumn"
-						},
-						{
-							"name": "AddNewColumns"
-						},
-						{
-							"name": "ModifyHeadingStyle"
-						}
-					],
-					"script": "source(output(\n\t\tdate as string,\n\t\tcounty as string,\n\t\tstate as string,\n\t\tfips as string,\n\t\tcases as string,\n\t\tdeaths as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'lineage',\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['nytimes-covid.csv']) ~> sourceCSV\nModifyHeadingStyle select(mapColumn(\n\t\tLoad_date,\n\t\tLoad_time,\n\t\tRecord_Date = Date,\n\t\tCounty,\n\t\tState,\n\t\tFips,\n\t\tCases,\n\t\tDeaths,\n\t\tIso_country,\n\t\tDeath_rate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DropLineageColumn\nsourceCSV derive(Load_time = substring(toString(currentTimestamp()), 12,25),\n\t\tLoad_date = currentDate(),\n\t\tIso_country = 'USA',\n\t\tDeath_rate = concat(toString(round(multiply(divide(toFloat(deaths),toFloat(cases)),100),4)),'%')) ~> AddNewColumns\nAddNewColumns select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tinitCap($$) = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ModifyHeadingStyle\nDropLineageColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SinkSynapse"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/nytimes_blobstorage_sink_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/nytimes_synapse_sink_dataset')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/nytimes_github_linkedservice')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "HttpServer",
-				"typeProperties": {
-					"url": "[parameters('nytimes_github_linkedservice_properties_typeProperties_url')]",
-					"enableServerCertificateValidation": true,
-					"authenticationType": "Anonymous"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/nytimes_github_source_dataset')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "nytimes_github_linkedservice",
+					"referenceName": "iri_source_blobstorage_linkedservice",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
-						"type": "HttpServerLocation",
-						"relativeUrl": "/nytimes/covid-19-data/master/us-counties.csv"
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "by_country",
+						"container": "irimscovoos"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
-				"schema": []
+				"schema": [
+					{
+						"name": "Date",
+						"type": "String"
+					},
+					{
+						"name": "County",
+						"type": "String"
+					},
+					{
+						"name": "Product Category",
+						"type": "String"
+					},
+					{
+						"name": "Product Brand",
+						"type": "String"
+					},
+					{
+						"name": "In Stock Rate",
+						"type": "String"
+					},
+					{
+						"name": "Agg Weight",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/nytimes_github_linkedservice')]"
+				"[concat(variables('factoryId'), '/linkedServices/iri_source_blobstorage_linkedservice')]"
 			]
 		},
 		{
@@ -1699,6 +1217,33 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/nytimes_github_source_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "nytimes_github_linkedservice",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "/nytimes/covid-19-data/master/us-counties.csv"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/nytimes_github_linkedservice')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/nytimes_synapse_sink_dataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1717,6 +1262,461 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ArmtemplateStorageLinkedService')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ArmtemplateStorageLinkedService_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsStaging')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSynapseAnalyticsStaging_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseOperational')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSynapseOperational_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LocalStorageLinkedService')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LocalStorageLinkedService_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iriSynapse')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('iriSynapse_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iri_source_blobstorage_linkedservice')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('iri_source_blobstorage_linkedservice_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/nytimes_github_linkedservice')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "HttpServer",
+				"typeProperties": {
+					"url": "[parameters('nytimes_github_linkedservice_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsStagingTable",
+								"type": "DatasetReference"
+							},
+							"name": "sourceSynapseStagingTable"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "SynapseOperationalTable_sink",
+								"type": "DatasetReference"
+							},
+							"name": "SynapseOperationalTable"
+						}
+					],
+					"transformations": [],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> sourceSynapseStagingTable\nsourceSynapseStagingTable sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tpostSQLs:['\\n'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseOperationalTable"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
+				"[concat(variables('factoryId'), '/datasets/SynapseOperationalTable_sink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LoadIntoOperationalTable_withSQL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsStagingTable",
+								"type": "DatasetReference"
+							},
+							"name": "sourceSynapseStagingTable"
+						},
+						{
+							"dataset": {
+								"referenceName": "SqlDbStaging",
+								"type": "DatasetReference"
+							},
+							"name": "sourceSqlDbStaging"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "SynapseOperationalTable_sink",
+								"type": "DatasetReference"
+							},
+							"name": "SynapseOperationalTable"
+						},
+						{
+							"dataset": {
+								"referenceName": "SqlOperationalSink",
+								"type": "DatasetReference"
+							},
+							"name": "SqlOperationalSink"
+						}
+					],
+					"transformations": [],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged: false) ~> sourceSynapseStagingTable\nsource(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> sourceSqlDbStaging\nsourceSynapseStagingTable sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tpostSQLs:['\\n'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseOperationalTable\nsourceSqlDbStaging sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SqlOperationalSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
+				"[concat(variables('factoryId'), '/datasets/SqlDbStaging')]",
+				"[concat(variables('factoryId'), '/datasets/SynapseOperationalTable_sink')]",
+				"[concat(variables('factoryId'), '/datasets/SqlOperationalSink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LoadIntoStagingTable')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ArmtemplateTestDatasetOut",
+								"type": "DatasetReference"
+							},
+							"name": "SourceCSV"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsStagingTable",
+								"type": "DatasetReference"
+							},
+							"name": "SynapseStagingSink"
+						}
+					],
+					"transformations": [],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'filename',\n\tinferDriftedColumnTypes: true) ~> SourceCSV\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseStagingSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ArmtemplateTestDatasetOut')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LoadIntoStagingTable_withSQL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ArmtemplateTestDatasetOut",
+								"type": "DatasetReference"
+							},
+							"name": "SourceCSV"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "AzureSynapseAnalyticsStagingTable",
+								"type": "DatasetReference"
+							},
+							"name": "SynapseStagingSink"
+						},
+						{
+							"dataset": {
+								"referenceName": "SqlDbStaging",
+								"type": "DatasetReference"
+							},
+							"name": "SQLStagingSink"
+						}
+					],
+					"transformations": [],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'filename',\n\tinferDriftedColumnTypes: true) ~> SourceCSV\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SynapseStagingSink\nSourceCSV sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SQLStagingSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ArmtemplateTestDatasetOut')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsStagingTable')]",
+				"[concat(variables('factoryId'), '/datasets/SqlDbStaging')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow_covid_nytimes')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "nytimes_blobstorage_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "sourceCSV"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "nytimes_synapse_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "SinkSynapse"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DropLineageColumn"
+						},
+						{
+							"name": "AddNewColumns"
+						},
+						{
+							"name": "ModifyHeadingStyle"
+						}
+					],
+					"script": "source(output(\n\t\tdate as string,\n\t\tcounty as string,\n\t\tstate as string,\n\t\tfips as string,\n\t\tcases as string,\n\t\tdeaths as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\trowUrlColumn: 'lineage',\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['nytimes-covid.csv']) ~> sourceCSV\nModifyHeadingStyle select(mapColumn(\n\t\tLoad_date,\n\t\tLoad_time,\n\t\tRecord_Date = Date,\n\t\tCounty,\n\t\tState,\n\t\tFips,\n\t\tCases,\n\t\tDeaths,\n\t\tIso_country,\n\t\tDeath_rate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> DropLineageColumn\nsourceCSV derive(Load_time = substring(toString(currentTimestamp()), 12,25),\n\t\tLoad_date = currentDate(),\n\t\tIso_country = 'USA',\n\t\tDeath_rate = concat(toString(round(multiply(divide(toFloat(deaths),toFloat(cases)),100),4)),'%')) ~> AddNewColumns\nAddNewColumns select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tinitCap($$) = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ModifyHeadingStyle\nDropLineageColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SinkSynapse"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/nytimes_blobstorage_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/nytimes_synapse_sink_dataset')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/loadCupsPlatesToSynapse')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "iri_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "CupsPlatesSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "cups_plates_synapse_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "CupsPlatesSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
+						},
+						{
+							"name": "NewColumnState"
+						},
+						{
+							"name": "RearrangeColumn"
+						}
+					],
+					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates*.csv']) ~> CupsPlatesSource\nCupsPlatesSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore derive(State = right(County, 2),\n\t\tCounty = left(County, length(County)-2)) ~> NewColumnState\nNewColumnState select(mapColumn(\n\t\tDate,\n\t\tCounty,\n\t\tState,\n\t\tProduct_Category,\n\t\tProduct_Brand,\n\t\tIn_Stock_Rate,\n\t\tAgg_Weight\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RearrangeColumn\nRearrangeColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CupsPlatesSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/cups_plates_synapse_dataset')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/loadFoilsWrapsToSynapse')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "iri_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "FoilsWrapsSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "foils_wraps_synapse_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "FoilsWrapsSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
+						},
+						{
+							"name": "NewColumnState"
+						},
+						{
+							"name": "RearrangeColumn"
+						}
+					],
+					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['foils_wraps*.csv']) ~> FoilsWrapsSource\nFoilsWrapsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore derive(State = right(County, 2),\n\t\tCounty = left(County, length(County)-2)) ~> NewColumnState\nNewColumnState select(mapColumn(\n\t\tDate,\n\t\tCounty,\n\t\tState,\n\t\tProduct_Category,\n\t\tProduct_Brand,\n\t\tIn_Stock_Rate,\n\t\tAgg_Weight\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RearrangeColumn\nRearrangeColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoilsWrapsSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/foils_wraps_synapse_dataset')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/loadFoodTrashBagsToSynapse')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "iri_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "FoodTrashBagsSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "food_trash_bags_synapse_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "FoodTrashBagsSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
+						},
+						{
+							"name": "NewColumnState"
+						},
+						{
+							"name": "RearrangeColumn"
+						}
+					],
+					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['food_trash_bags*.csv']) ~> FoodTrashBagsSource\nFoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore derive(State = right(County, 2),\n\t\tCounty = left(County, length(County)-2)) ~> NewColumnState\nNewColumnState select(mapColumn(\n\t\tDate,\n\t\tCounty,\n\t\tState,\n\t\tProduct_Category,\n\t\tProduct_Brand,\n\t\tIn_Stock_Rate,\n\t\tAgg_Weight\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RearrangeColumn\nRearrangeColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoodTrashBagsSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/food_trash_bags_synapse_dataset')]"
 			]
 		}
 	]

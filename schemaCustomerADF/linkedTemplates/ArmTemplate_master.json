@@ -31,13 +31,13 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LocalStorageLinkedService'"
 		},
-		"iri_source_blobstorage_linkedservice_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'iri_source_blobstorage_linkedservice'"
-		},
 		"iriSynapse_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'iriSynapse'"
+		},
+		"iri_source_blobstorage_linkedservice_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'iri_source_blobstorage_linkedservice'"
 		},
 		"nytimes_github_linkedservice_properties_typeProperties_url": {
 			"type": "string",
@@ -88,11 +88,11 @@
 					"LocalStorageLinkedService_connectionString": {
 						"value": "[parameters('LocalStorageLinkedService_connectionString')]"
 					},
-					"iri_source_blobstorage_linkedservice_connectionString": {
-						"value": "[parameters('iri_source_blobstorage_linkedservice_connectionString')]"
-					},
 					"iriSynapse_connectionString": {
 						"value": "[parameters('iriSynapse_connectionString')]"
+					},
+					"iri_source_blobstorage_linkedservice_connectionString": {
+						"value": "[parameters('iri_source_blobstorage_linkedservice_connectionString')]"
 					},
 					"nytimes_github_linkedservice_properties_typeProperties_url": {
 						"value": "[parameters('nytimes_github_linkedservice_properties_typeProperties_url')]"
