@@ -86,6 +86,13 @@
 						"referenceName": "dataflow1",
 						"type": "DataFlowReference"
 					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "LocalStorageLinkedService",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "iri-prod-dim-container"
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
