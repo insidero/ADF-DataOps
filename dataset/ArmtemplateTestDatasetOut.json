@@ -18,7 +18,108 @@
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
-		"schema": []
+		"schema": [
+			{
+				"name": "Row_ID",
+				"type": "String"
+			},
+			{
+				"name": "Load_Date",
+				"type": "String"
+			},
+			{
+				"name": "Load_Time",
+				"type": "String"
+			},
+			{
+				"name": "Longitude",
+				"type": "String"
+			},
+			{
+				"name": "Latitude",
+				"type": "String"
+			},
+			{
+				"name": "Hospital_Name",
+				"type": "String"
+			},
+			{
+				"name": "Hospital_Type",
+				"type": "String"
+			},
+			{
+				"name": "Hq_Address",
+				"type": "String"
+			},
+			{
+				"name": "Hq_Address1",
+				"type": "String"
+			},
+			{
+				"name": "Hq_Citystring",
+				"type": "String"
+			},
+			{
+				"name": "Hq_State",
+				"type": "String"
+			},
+			{
+				"name": "Hq_Zip_Code",
+				"type": "String"
+			},
+			{
+				"name": "County_Name",
+				"type": "String"
+			},
+			{
+				"name": "State_Name",
+				"type": "String"
+			},
+			{
+				"name": "State_Fips",
+				"type": "String"
+			},
+			{
+				"name": "Cnty_Fips",
+				"type": "String"
+			},
+			{
+				"name": "Fips",
+				"type": "String"
+			},
+			{
+				"name": "Num_Licensed_Beds",
+				"type": "String"
+			},
+			{
+				"name": "Num_Staffed_Beds",
+				"type": "String"
+			},
+			{
+				"name": "Num_Icu_Beds",
+				"type": "String"
+			},
+			{
+				"name": "Adult_Icu_Beds",
+				"type": "String"
+			},
+			{
+				"name": "Pedi_Icu_Beds",
+				"type": "String"
+			},
+			{
+				"name": "Bed_Utilization",
+				"type": "String"
+			},
+			{
+				"name": "Potential_Increase_In_Bed_Capac",
+				"type": "String"
+			},
+			{
+				"name": "Avg_Ventilator_Usage",
+				"type": "String"
+			}
+		]
 	},
 	"type": "Microsoft.DataFactory/factories/datasets"
 }
