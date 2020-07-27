@@ -194,6 +194,9 @@
 						}
 					}
 				],
+				"folder": {
+					"name": "Definitive HealthCare"
+				},
 				"annotations": []
 			},
 			"dependsOn": []
@@ -479,6 +482,9 @@
 						}
 					}
 				],
+				"folder": {
+					"name": "Definitive HealthCare SQL"
+				},
 				"annotations": []
 			},
 			"dependsOn": []

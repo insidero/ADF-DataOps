@@ -389,55 +389,24 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/iri_sink_dataset')]",
+			"name": "[concat(parameters('factoryName'), '/iri_cupsplates_dim_synapse_dataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "LocalStorageLinkedService",
+					"referenceName": "iriSynapse",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
-				"type": "DelimitedText",
+				"type": "AzureSqlDWTable",
+				"schema": [],
 				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"container": "iri-container"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "Date",
-						"type": "String"
-					},
-					{
-						"name": "County",
-						"type": "String"
-					},
-					{
-						"name": "Product Category",
-						"type": "String"
-					},
-					{
-						"name": "Product Brand",
-						"type": "String"
-					},
-					{
-						"name": "In Stock Rate",
-						"type": "String"
-					},
-					{
-						"name": "Agg Weight",
-						"type": "String"
-					}
-				]
+					"schema": "",
+					"table": "cupsPlatesDim"
+				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LocalStorageLinkedService')]"
+				"[concat(variables('factoryId'), '/linkedServices/iriSynapse')]"
 			]
 		}
 	]

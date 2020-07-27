@@ -13,6 +13,145 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/iri_foilsWraps_synapse_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "foilsWrapsDim"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iri_foodTrashBags_synapse_linkedservice')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iriSynapse",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "",
+					"table": "foodTrashBagsDim"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iri_prod_dim_sink_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LocalStorageLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "iri-prod-dim-container"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iri_prod_dim_source_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "iri_source_blobstorage_linkedservice",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "product_dim",
+						"container": "irimscovoos"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/iri_sink_dataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LocalStorageLinkedService",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "iri-container"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "Date",
+						"type": "String"
+					},
+					{
+						"name": "County",
+						"type": "String"
+					},
+					{
+						"name": "Product Category",
+						"type": "String"
+					},
+					{
+						"name": "Product Brand",
+						"type": "String"
+					},
+					{
+						"name": "In Stock Rate",
+						"type": "String"
+					},
+					{
+						"name": "Agg Weight",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/iri_source_dataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -156,114 +295,6 @@
 				"typeProperties": {
 					"schema": "",
 					"table": "nyTimes"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/iri_prod_dim_source_dataset')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "iri_source_blobstorage_linkedservice",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"folderPath": "product_dim",
-						"container": "irimscovoos"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/iri_prod_dim_sink_dataset')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LocalStorageLinkedService",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"container": "iri-prod-dim-container"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/iri_cupsplates_dim_synapse_dataset')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "iriSynapse",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "",
-					"table": "cupsPlatesDim"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/iri_foilsWraps_synapse_dataset')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "iriSynapse",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "",
-					"table": "foilsWrapsDim"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/iri_foodTrashBags_synapse_linkedservice')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "iriSynapse",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "",
-					"table": "foodTrashBagsDim"
 				}
 			},
 			"dependsOn": []
@@ -414,6 +445,43 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/cupsPlatesDim_transformations')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "iri_prod_dim_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "cupsPlatesDimSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "iri_cupsplates_dim_synapse_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "cupsPlatesDimSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
+						}
+					],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates.csv']) ~> cupsPlatesDimSource\ncupsPlatesDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> cupsPlatesDimSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/dataflow_covid_nytimes')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -458,6 +526,82 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/foilsWrapsDim_transformations')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "iri_prod_dim_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "foilsWrapsDimSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "iri_foilsWraps_synapse_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "foilsWrapsDimSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
+						}
+					],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['foils_wraps.csv']) ~> foilsWrapsDimSource\nfoilsWrapsDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> foilsWrapsDimSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/iri_foilsWraps_synapse_dataset')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/foodTrashBagsDim_transformations')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "iri_prod_dim_sink_dataset",
+								"type": "DatasetReference"
+							},
+							"name": "foodTrashBagsSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "iri_foodTrashBags_synapse_linkedservice",
+								"type": "DatasetReference"
+							},
+							"name": "foodTrashBagsSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "ReplaceSpaceWithUnderScore"
+						}
+					],
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['food_trash_bags.csv']) ~> foodTrashBagsSource\nfoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> foodTrashBagsSink"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
+				"[concat(variables('factoryId'), '/datasets/iri_foodTrashBags_synapse_linkedservice')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/loadCupsPlatesToSynapse')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -496,7 +640,9 @@
 					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates*.csv']) ~> CupsPlatesSource\nCupsPlatesSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore derive(State = right(County, 2),\n\t\tCounty = left(County, length(County)-2)) ~> NewColumnState\nNewColumnState select(mapColumn(\n\t\tDate,\n\t\tCounty,\n\t\tState,\n\t\tProduct_Category,\n\t\tProduct_Brand,\n\t\tIn_Stock_Rate,\n\t\tAgg_Weight\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RearrangeColumn\nRearrangeColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CupsPlatesSink"
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/loadFoilsWrapsToSynapse')]",
@@ -537,7 +683,9 @@
 					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['foils_wraps*.csv']) ~> FoilsWrapsSource\nFoilsWrapsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore derive(State = right(County, 2),\n\t\tCounty = left(County, length(County)-2)) ~> NewColumnState\nNewColumnState select(mapColumn(\n\t\tDate,\n\t\tCounty,\n\t\tState,\n\t\tProduct_Category,\n\t\tProduct_Brand,\n\t\tIn_Stock_Rate,\n\t\tAgg_Weight\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RearrangeColumn\nRearrangeColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoilsWrapsSink"
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/loadFoodTrashBagsToSynapse')]",
@@ -578,120 +726,8 @@
 					"script": "source(output(\n\t\tDate as string,\n\t\tCounty as string,\n\t\t{Product Category} as string,\n\t\t{Product Brand} as string,\n\t\t{In Stock Rate} as string,\n\t\t{Agg Weight} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\twildcardPaths:['food_trash_bags*.csv']) ~> FoodTrashBagsSource\nFoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$,' ','_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore derive(State = right(County, 2),\n\t\tCounty = left(County, length(County)-2)) ~> NewColumnState\nNewColumnState select(mapColumn(\n\t\tDate,\n\t\tCounty,\n\t\tState,\n\t\tProduct_Category,\n\t\tProduct_Brand,\n\t\tIn_Stock_Rate,\n\t\tAgg_Weight\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RearrangeColumn\nRearrangeColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\trecreate:true,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> FoodTrashBagsSink"
 				}
 			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/cupsPlatesDim_transformations')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "iri_prod_dim_sink_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "cupsPlatesDimSource"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "iri_cupsplates_dim_synapse_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "cupsPlatesDimSink"
-						}
-					],
-					"transformations": [
-						{
-							"name": "ReplaceSpaceWithUnderScore"
-						}
-					],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['cups_plates.csv']) ~> cupsPlatesDimSource\ncupsPlatesDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> cupsPlatesDimSink"
-				}
-			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/iri_cupsplates_dim_synapse_dataset')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/foilsWrapsDim_transformations')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "iri_prod_dim_sink_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "foilsWrapsDimSource"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "iri_foilsWraps_synapse_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "foilsWrapsDimSink"
-						}
-					],
-					"transformations": [
-						{
-							"name": "ReplaceSpaceWithUnderScore"
-						}
-					],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['foils_wraps.csv']) ~> foilsWrapsDimSource\nfoilsWrapsDimSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> foilsWrapsDimSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/iri_foilsWraps_synapse_dataset')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/foodTrashBagsDim_transformations')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "iri_prod_dim_sink_dataset",
-								"type": "DatasetReference"
-							},
-							"name": "foodTrashBagsSource"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "iri_foodTrashBags_synapse_linkedservice",
-								"type": "DatasetReference"
-							},
-							"name": "foodTrashBagsSink"
-						}
-					],
-					"transformations": [
-						{
-							"name": "ReplaceSpaceWithUnderScore"
-						}
-					],
-					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\twildcardPaths:['food_trash_bags.csv']) ~> foodTrashBagsSource\nfoodTrashBagsSource select(mapColumn(\n\t\teach(patternMatch(`.*`),\n\t\t\tregexReplace($$, ' ', '_') = $$)\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> ReplaceSpaceWithUnderScore\nReplaceSpaceWithUnderScore sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tstaged: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> foodTrashBagsSink"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/iri_prod_dim_sink_dataset')]",
-				"[concat(variables('factoryId'), '/datasets/iri_foodTrashBags_synapse_linkedservice')]"
+				"[concat(variables('factoryId'), '/datasets/iri_sink_dataset')]"
 			]
 		}
 	]
