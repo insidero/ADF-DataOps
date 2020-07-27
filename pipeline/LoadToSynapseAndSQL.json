@@ -258,6 +258,9 @@
 				}
 			}
 		],
+		"folder": {
+			"name": "Definitive HealthCare SQL"
+		},
 		"annotations": []
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
