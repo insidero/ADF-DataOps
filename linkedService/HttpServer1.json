@@ -1,0 +1,12 @@
+{
+	"name": "HttpServer1",
+	"properties": {
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://hooks.slack.com/services/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",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "Anonymous"
+		}
+	}
+}
